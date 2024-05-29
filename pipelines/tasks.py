@@ -48,6 +48,10 @@ def process_data(local_path: Path) -> pd.DataFrame:
 
         dataframe = pd.DataFrame(data)
         log("Data has been converted to a DataFrame.")
+        # merging address columns
+        log("Processing data...")
+        dataframe = dataframe.drop(['address_2', 'address_3'], axis=1)
+        dataframe.rename(columns={'address_1': 'address'}, inplace=True)
         log(f'DataFrame head: \n{dataframe.head()}')
 
         return dataframe
@@ -59,13 +63,13 @@ def process_data(local_path: Path) -> pd.DataFrame:
 @task
 def save_data_to_parquet(dataframe: pd.DataFrame, base_path: str) -> None:
 
-    if 'brewery_type' not in dataframe.columns or 'state_province' not in dataframe.columns:
-        log("Dataframe must contain 'brewery_type' and 'state_province' columns for partitioning")
-        raise ValueError("Dataframe must contain 'brewery_type' and 'state_province' columns for partitioning")
+    if 'state_province' not in dataframe.columns:
+        log("Dataframe must contain 'state_province' columns for partitioning")
+        raise ValueError("Dataframe must contain 'state_province' columns for partitioning")
 
     base_path = Path(base_path)
     base_path.mkdir(parents=True, exist_ok=True)
 
-    log("Saving data to Parquet files partitioned by 'brewery_type' and 'state_province'...")
-    dataframe.to_parquet(base_path, partition_cols=['brewery_type', 'state_province'], engine='pyarrow', index=False)
+    log("Saving data to Parquet files partitioned by 'state_province'...")
+    dataframe.to_parquet(base_path, partition_cols=['state_province'], engine='pyarrow', index=False)
     log(f"Data saved successfully as Parquet at {base_path}")
