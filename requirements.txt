@@ -1,0 +1,7 @@
+prefect==0.15.9
+pandas
+requests
+dbt-postgres
+psycopg2-binary
+pyarrow
+fastparquet
