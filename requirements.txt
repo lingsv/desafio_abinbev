@@ -1,7 +1,9 @@
 prefect==0.15.9
 pandas
 requests
+dbt-core
 dbt-postgres
 psycopg2-binary
 pyarrow
 fastparquet
+
