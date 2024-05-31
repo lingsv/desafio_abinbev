@@ -1,21 +1,86 @@
-
 version: 2
 
 models:
-  - name: brewery_gold
-    description: "A starter dbt model"
-    columns:
-      - name: id
-        description: "The primary key for this table"
-        data_tests:
-          - unique
-          - not_null
-
   - name: brewery_silver
-    description: "A starter dbt model"
+    description: "Modelo transformado da camada bronze para a camada silver"
     columns:
       - name: id
-        description: "The primary key for this table"
-        data_tests:
-          - unique
+        description: "ID da cervejaria"
+        tests:
           - not_null
+          - unique
+      - name: name
+        description: "Nome da cervejaria"
+        tests:
+          - not_null
+      - name: brewery_type
+        description: "Tipo de cervejaria"
+        tests:
+          - not_null
+      - name: state
+        description: "Estado da cervejaria"
+        tests:
+          - not_null
+      - name: country
+        description: "País da cervejaria"
+        tests:
+          - not_null
+      - name: city
+        description: "Cidade da cervejaria"
+        tests:
+          - not_null
+      - name: street
+        description: "Rua da cervejaria"
+        tests:
+          - not_null
+      - name: address
+        description: "Endereço da cervejaria"
+        tests:
+          - not_null
+      - name: state_province
+        description: "Província da cervejaria"
+        tests:
+          - not_null
+      - name: postal_code
+        description: "CEP da cervejaria"
+        tests:
+          - not_null
+      - name: phone
+        description: "Telefone da cervejaria"
+        tests:
+          - not_null
+      - name: longitude
+        description: "Longitude da cervejaria"
+        tests:
+          - not_null
+      - name: latitude
+        description: "Latitude da cervejaria"
+        tests:
+          - not_null
+      - name: website_url
+        description: "Site da cervejaria"
+        tests:
+          - not_null
+  - name: brewery_gold
+    description: "Modelo transformado da camada silver para a camada gold"
+    columns:
+      - name: brewery_type
+        description: "Tipo de cervejaria"
+        tests:
+          - not_null
+      - name: state
+        description: "Estado da cervejaria"
+        tests:
+          - not_null
+      - name: country
+        description: "País da cervejaria"
+        tests:
+          - not_null
+      - name: brewery_count
+        description: "Contagem de cervejarias"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('brewery_silver')
+              field: id
+
