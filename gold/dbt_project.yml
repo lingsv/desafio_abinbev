@@ -41,4 +41,5 @@ models:
         +schema: layers
 seeds:
   gold:
-    +schema: layers
+    raw_data:
+      +schema: layers

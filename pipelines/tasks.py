@@ -83,17 +83,18 @@ def save_data_to_parquet(dataframe: pd.DataFrame, base_path: str) -> None:
     log("Saving data to Parquet files partitioned by 'state'...")
     dataframe.to_parquet(base_path, partition_cols=['state'], engine='pyarrow', index=False)
     log(f"Data saved successfully as Parquet at {base_path}")
+    
+@task
+def run_dbt_seed(upstream_task=save_data_to_csv):
+    result = subprocess.run(["dbt", "seed"], cwd="gold", capture_output=True, text=True)
+    if result.returncode != 0:
+        raise Exception(f"dbt seed failed: {result.stderr}")
+    log(result.stdout)
+    return result.stdout
 
-# @task
-# def run_dbt_seed(upstream_task=save_data_to_parquet):
-#     result = subprocess.run(["dbt", "seed"], cwd="gold", capture_output=True, text=True)
-#     if result.returncode != 0:
-#         raise Exception(f"dbt seed failed: {result.stderr}")
-#     log(result.stdout)
-#     return result.stdout
 
 @task
-def run_dbt(upstream_task=save_data_to_csv):
+def run_dbt(upstream_task=run_dbt_seed):
     result = subprocess.run(["dbt", "seed"], cwd="gold", capture_output=True, text=True)
     if result.returncode != 0:
         raise Exception(f"dbt seed failed: {result.stderr}")

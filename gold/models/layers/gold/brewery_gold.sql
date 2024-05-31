@@ -1,20 +1,12 @@
--- models/gold/brewery_gold.sql
 {{ config(materialized='view') }}
 
-
 with silver as (
-    select 
-        id,
-        name,
-        brewery_type,
-        city,
-        state,
-        country,
-    from {{ ref('brewery_silver') }}
+    select * from {{ ref('brewery_silver') }}
 )
-select
-    state,
+select 
     brewery_type,
-    count(id) as brewery_count
+    state,
+    country,
+    count(*) as brewery_count
 from silver
-group by state, brewery_type
+group by brewery_type, state, country
