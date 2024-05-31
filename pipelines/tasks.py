@@ -1,7 +1,4 @@
-import datetime
 import json
-import os
-
 import pandas as pd
 import requests
 from prefect import task
@@ -13,9 +10,21 @@ import subprocess
 
 @task
 def get_api_data(url: str, local_path: str) -> Path:
+    """_summary_
+
+    Args:
+        url (str): _description_
+        local_path (str): _description_
+
+    Raises:
+        error: _description_
+
+    Returns:
+        Path: _description_
+    """
     
     all_data = []
-    for i in range(3):
+    for i in range(8500):
         try:
             log(f"Downloading data: {i}")
             response = requests.get(url)
@@ -40,6 +49,17 @@ def get_api_data(url: str, local_path: str) -> Path:
 
 @task
 def process_data(local_path: Path) -> pd.DataFrame:
+    """_summary_
+
+    Args:
+        local_path (Path): _description_
+
+    Raises:
+        e: _description_
+
+    Returns:
+        pd.DataFrame: _description_
+    """
 
     try:
         with local_path.open('r') as f:
@@ -66,6 +86,12 @@ def process_data(local_path: Path) -> pd.DataFrame:
 
 @task
 def save_data_to_csv(dataframe: pd.DataFrame, csv_path: str) -> None:
+    """_summary_
+
+    Args:
+        dataframe (pd.DataFrame): _description_
+        csv_path (str): _description_
+    """
     csv_path = Path(csv_path)
     csv_path.parent.mkdir(parents=True, exist_ok=True)
     dataframe.to_csv(csv_path, index=False)
@@ -73,6 +99,15 @@ def save_data_to_csv(dataframe: pd.DataFrame, csv_path: str) -> None:
 
 @task
 def save_data_to_parquet(dataframe: pd.DataFrame, base_path: str) -> None:
+    """_summary_
+
+    Args:
+        dataframe (pd.DataFrame): _description_
+        base_path (str): _description_
+
+    Raises:
+        ValueError: _description_
+    """
     if 'state' not in dataframe.columns:
         log("Dataframe must contain 'state' columns for partitioning")
         raise ValueError("Dataframe must contain 'state' columns for partitioning")
@@ -86,6 +121,17 @@ def save_data_to_parquet(dataframe: pd.DataFrame, base_path: str) -> None:
     
 @task
 def run_dbt_seed(upstream_task=save_data_to_csv):
+    """_summary_
+
+    Args:
+        upstream_task (_type_, optional): _description_. Defaults to save_data_to_csv.
+
+    Raises:
+        Exception: _description_
+
+    Returns:
+        _type_: _description_
+    """
     result = subprocess.run(["dbt", "seed"], cwd="gold", capture_output=True, text=True)
     if result.returncode != 0:
         raise Exception(f"dbt seed failed: {result.stderr}")
@@ -95,7 +141,16 @@ def run_dbt_seed(upstream_task=save_data_to_csv):
 
 @task
 def run_dbt(upstream_task=run_dbt_seed):
+    """_summary_
+
+    Args:
+        upstream_task (_type_, optional): _description_. Defaults to run_dbt_seed.
+
+    Raises:
+        Exception: _description_
+    """
     result = subprocess.run(["dbt", "seed"], cwd="gold", capture_output=True, text=True)
     if result.returncode != 0:
         raise Exception(f"dbt seed failed: {result.stderr}")
     log(result.stdout)
+

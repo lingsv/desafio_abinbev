@@ -1,6 +1,7 @@
 from prefect import Flow, Parameter
-from tasks import get_api_data, process_data, save_data_to_parquet, save_data_to_csv, run_dbt, run_dbt_seed
-from pathlib import Path
+from tasks import (get_api_data, process_data, save_data_to_parquet, 
+                   save_data_to_csv, run_dbt, 
+                    run_dbt_seed)
 
 with Flow('Extract brewery data') as brew_flow:
 
@@ -16,4 +17,4 @@ with Flow('Extract brewery data') as brew_flow:
     parquet = save_data_to_parquet(dataframe=dataframed_data, base_path=base_path)
     csv = save_data_to_csv(dataframe=dataframed_data, csv_path=csv_path)
     seed = run_dbt_seed(upstream_task=csv)
-    run_dbt(upstream_task=seed)
+    results = run_dbt(upstream_task=seed)
