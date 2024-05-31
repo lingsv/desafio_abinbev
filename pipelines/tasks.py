@@ -92,10 +92,13 @@ def save_data_to_csv(dataframe: pd.DataFrame, csv_path: str) -> None:
         dataframe (pd.DataFrame): _description_
         csv_path (str): _description_
     """
-    csv_path = Path(csv_path)
-    csv_path.parent.mkdir(parents=True, exist_ok=True)
-    dataframe.to_csv(csv_path, index=False)
-    log(f"Data saved successfully as CSV at {csv_path}")
+    try:
+        csv_path = Path(csv_path)
+        csv_path.parent.mkdir(parents=True, exist_ok=True)
+        dataframe.to_csv(csv_path, index=False)
+        log(f"Data saved successfully as CSV at {csv_path}")
+    except Exception as error:
+        log(f"{error}")
 
 @task
 def save_data_to_parquet(dataframe: pd.DataFrame, base_path: str) -> None:
