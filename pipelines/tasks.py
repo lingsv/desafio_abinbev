@@ -10,17 +10,17 @@ import subprocess
 
 @task
 def get_api_data(url: str, local_path: str) -> Path:
-    """_summary_
+    """Extracts data from the API.
 
     Args:
-        url (str): _description_
-        local_path (str): _description_
+        url (str): API endpoint.
+        local_path (str): Local path to store the extracted data.
 
     Raises:
-        error: _description_
+        error: Request error when the status is not 200.
 
     Returns:
-        Path: _description_
+        Path:Final path with the data.
     """
     
     all_data = []
@@ -49,16 +49,17 @@ def get_api_data(url: str, local_path: str) -> Path:
 
 @task
 def process_data(local_path: Path) -> pd.DataFrame:
-    """_summary_
+    """Process the extracted data into a dataframe 
+        and process some columns of the dataframe.
 
     Args:
-        local_path (Path): _description_
+        local_path (Path): Path with data.
 
     Raises:
-        e: _description_
+        error: Returns an error if it fails to parse the data.
 
     Returns:
-        pd.DataFrame: _description_
+        pd.DataFrame: Final dataframe.
     """
 
     try:
@@ -80,36 +81,33 @@ def process_data(local_path: Path) -> pd.DataFrame:
 
         return dataframe
 
-    except json.JSONDecodeError as e:
-        log(f"Failed to decode JSON data: {e}")
-        raise e
+    except json.JSONDecodeError as error:
+        log(f"Failed to decode JSON data: {error}")
+        raise error
 
 @task
 def save_data_to_csv(dataframe: pd.DataFrame, csv_path: str) -> None:
-    """_summary_
+    """Saves the raw data in a CSV file stored in the `seeds` folder. 
 
     Args:
-        dataframe (pd.DataFrame): _description_
-        csv_path (str): _description_
+        dataframe (pd.DataFrame): The transformed dataframe.
+        csv_path (str): The seeds folder path.
     """
-    try:
-        csv_path = Path(csv_path)
-        csv_path.parent.mkdir(parents=True, exist_ok=True)
-        dataframe.to_csv(csv_path, index=False)
-        log(f"Data saved successfully as CSV at {csv_path}")
-    except Exception as error:
-        log(f"{error}")
+    csv_path = Path(csv_path)
+    csv_path.parent.mkdir(parents=True, exist_ok=True)
+    dataframe.to_csv(csv_path, index=False)
+    log(f"Data saved successfully as CSV at {csv_path}")
 
 @task
 def save_data_to_parquet(dataframe: pd.DataFrame, base_path: str) -> None:
-    """_summary_
+    """Saves the data in partitioned parquet files.
 
     Args:
-        dataframe (pd.DataFrame): _description_
-        base_path (str): _description_
+        dataframe (pd.DataFrame): The transformed dataframe.
+        base_path (str): The local path that will store the parquet files.
 
     Raises:
-        ValueError: _description_
+        ValueError: Raise an error if the dataframe does not contain the partition column.
     """
     if 'state' not in dataframe.columns:
         log("Dataframe must contain 'state' columns for partitioning")
@@ -124,16 +122,17 @@ def save_data_to_parquet(dataframe: pd.DataFrame, base_path: str) -> None:
     
 @task
 def run_dbt_seed(upstream_task=save_data_to_csv):
-    """_summary_
+    """Executes the seed operation in dbt to materialize the table later.
 
     Args:
-        upstream_task (_type_, optional): _description_. Defaults to save_data_to_csv.
+        upstream_task (_type_, optional): Sets the necessary task that comes before the dbt operation.
+         Defaults to save_data_to_csv.
 
     Raises:
-        Exception: _description_
+        Exception: If the operation returns a code diferrent from 0, it raises an error.
 
     Returns:
-        _type_: _description_
+        _type_: Returns the DBT interface for the process execution.
     """
     result = subprocess.run(["dbt", "seed"], cwd="gold", capture_output=True, text=True)
     if result.returncode != 0:
@@ -144,16 +143,18 @@ def run_dbt_seed(upstream_task=save_data_to_csv):
 
 @task
 def run_dbt(upstream_task=run_dbt_seed):
-    """_summary_
+    """Executes the materialization of the table and the view in dbt.
 
     Args:
-        upstream_task (_type_, optional): _description_. Defaults to run_dbt_seed.
+        upstream_task (_type_, optional): Sets the necessary task that comes before the dbt operation. Defaults to run_dbt_seed.
 
     Raises:
-        Exception: _description_
+        Exception: If the operation returns a code diferrent from 0, it raises an error.
+    Returns:
+        _type_: Returns the DBT interface for the process execution.
     """
     result = subprocess.run(["dbt", "seed"], cwd="gold", capture_output=True, text=True)
     if result.returncode != 0:
         raise Exception(f"dbt seed failed: {result.stderr}")
     log(result.stdout)
-
+    return result.stdout
