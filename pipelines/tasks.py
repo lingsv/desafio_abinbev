@@ -110,7 +110,7 @@ def save_data_to_parquet(dataframe: pd.DataFrame, base_path: str) -> None:
         ValueError: Raise an error if the dataframe does not contain the partition column.
     """
     if 'state' not in dataframe.columns:
-        log("Dataframe must contain 'state' columns for partitioning")
+        #log("Dataframe must contain 'state' columns for partitioning")
         raise ValueError("Dataframe must contain 'state' columns for partitioning")
 
     base_path = Path(base_path)
@@ -153,8 +153,8 @@ def run_dbt(upstream_task=run_dbt_seed):
     Returns:
         _type_: Returns the DBT interface for the process execution.
     """
-    result = subprocess.run(["dbt", "seed"], cwd="gold", capture_output=True, text=True)
+    result = subprocess.run(["dbt", "run"], cwd="gold", capture_output=True, text=True)
     if result.returncode != 0:
-        raise Exception(f"dbt seed failed: {result.stderr}")
+        raise Exception(f"dbt run failed: {result.stderr}")
     log(result.stdout)
     return result.stdout
